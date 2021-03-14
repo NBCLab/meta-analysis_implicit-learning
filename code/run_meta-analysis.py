@@ -40,14 +40,14 @@ def run_ale(dset, output_dir, prefix):
 
 def run_subtraction(dset1, dset2, output_dir, prefix1, prefix2):
     #define the ALE algorithm
-    #alesubtraction = nimare.meta.ALESubtraction(n_iters=10000)
+    alesubtraction = nimare.meta.ALESubtraction(n_iters=10000)
 
     #calculate ale statistics
-    #sres = alesubtraction.fit(dset1, dset2)
+    sres = alesubtraction.fit(dset1, dset2)
 
     #save output maps and dataset
-    #os.makedirs(output_dir, exist_ok=True)
-    #sres.save_maps(output_dir=op.join(output_dir, '{}_gt_{}'.format(prefix1, prefix2), prefix='{}_gt_{}'.format(prefix1, prefix2))
+    os.makedirs(output_dir, exist_ok=True)
+    sres.save_maps(output_dir=op.join(output_dir, '{}_gt_{}'.format(prefix1, prefix2), prefix='{}_gt_{}'.format(prefix1, prefix2))
 
     #get contrast analysis results
     z_img = nib.load(op.join(output_dir, '{}_gt_{}'.format(prefix1, prefix2), '{}_gt_{}_z_desc-group1MinusGroup2.nii.gz'.format(prefix1, prefix2)))
@@ -101,7 +101,7 @@ grammatical_dset = dset_include.slice(grammatical_idx)
 
 #define output directory and run ale function defined above
 output_dir = op.join(project_directory, 'derivatives', 'grammatical')
-#run_ale(grammatical_dset, output_dir, 'grammatical')
+run_ale(grammatical_dset, output_dir, 'grammatical')
 
 #select the ungrammatical contrasts
 ungrammatical_idx = dset_include.annotations['id'][dset_include.annotations['Meta-Analysis Group'] == 'Ungrammatical']
@@ -109,7 +109,7 @@ ungrammatical_dset = dset_include.slice(ungrammatical_idx)
 
 #define output directory and run ale function defined above
 output_dir = op.join(project_directory, 'derivatives', 'ungrammatical')
-#run_ale(ungrammatical_dset, output_dir, 'ungrammatical')
+run_ale(ungrammatical_dset, output_dir, 'ungrammatical')
 
 #run subtraction analysis
 output_dir = op.join(project_directory, 'derivatives')

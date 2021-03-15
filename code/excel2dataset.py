@@ -97,12 +97,13 @@ for i in range(len(study_idx)-1):
     for j, row in contrast_info.iterrows():
         study_dict[paper_id]['contrasts'][row['Contrast ID']] = {}
         study_dict[paper_id]['contrasts'][row['Contrast ID']]['metadata'] = {}
-        study_dict[paper_id]['contrasts'][row['Contrast ID']]['metadata']['sample_size'] = {}
         study_dict[paper_id]['contrasts'][row['Contrast ID']]['labels'] = {}
         study_dict[paper_id]['contrasts'][row['Contrast ID']]['coords'] = {}
         study_dict[paper_id]['contrasts'][row['Contrast ID']]['coords']['space'] = {}
 
         study_dict[paper_id]['contrasts'][row['Contrast ID']]['metadata'].update(study_info[['Author', 'Year', 'Citation']].to_dict())
+        study_dict[paper_id]['contrasts'][row['Contrast ID']]['metadata']['# Foci'] = np.shape(contrast_dict[paper_id]['contrasts'][row['Contrast ID']]['x'])[0]
+        study_dict[paper_id]['contrasts'][row['Contrast ID']]['metadata']['Contrast Name'] = contrast_dict[paper_id]['contrasts'][row['Contrast ID']]['Contrast Name']
         study_dict[paper_id]['contrasts'][row['Contrast ID']]['metadata']['sample_sizes'] = row['Sample Size (n)']
         study_dict[paper_id]['contrasts'][row['Contrast ID']]['labels'].update(study_info.drop(labels=['Author', 'Year', 'Citation']).to_dict())
         study_dict[paper_id]['contrasts'][row['Contrast ID']]['labels'].update(row.drop(labels=['Contrast ID', 'Coordinate Space/Template', 'Sample Size (n)']).to_dict())

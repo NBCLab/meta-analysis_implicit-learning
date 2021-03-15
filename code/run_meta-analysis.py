@@ -4,6 +4,8 @@ import os
 import os.path as op
 import nibabel as nib
 import numpy as np
+import pandas as pd
+from atlasreader import atlasreader
 
 
 #define some functions
@@ -29,14 +31,12 @@ def run_ale(dset, output_dir, prefix):
     #save output maps and dataset
     os.makedirs(output_dir, exist_ok=True)
     cres.save_maps(output_dir=output_dir, prefix=prefix)
-    dset.save(op.join(output_dir, prefix + ".pkl"))
 
     #the FWE corrected map contains a -logp value for each cluster, so we need to manually theshold the map to account for that
     z_img_logp = nib.load(op.join(output_dir, '{prefix}_logp_level-cluster_corr-FWE_method-montecarlo.nii.gz'.format(prefix=prefix)))
     z_img = nib.load(op.join(output_dir, '{prefix}_z.nii.gz'.format(prefix=prefix)))
     z_img_thresh = thresh_img(z_img_logp, z_img, 0.05)
     nib.save(z_img_thresh, op.join(output_dir, '{prefix}_z_corr-FWE_thresh-05.nii.gz'.format(prefix=prefix)))
-
 
 def run_subtraction(dset1, dset2, output_dir, prefix1, prefix2):
     #define the ALE algorithm
@@ -47,7 +47,7 @@ def run_subtraction(dset1, dset2, output_dir, prefix1, prefix2):
 
     #save output maps and dataset
     os.makedirs(output_dir, exist_ok=True)
-    sres.save_maps(output_dir=op.join(output_dir, '{}_gt_{}'.format(prefix1, prefix2), prefix='{}_gt_{}'.format(prefix1, prefix2))
+    sres.save_maps(output_dir=op.join(output_dir, '{}_gt_{}'.format(prefix1, prefix2)), prefix='{}_gt_{}'.format(prefix1, prefix2))
 
     #get contrast analysis results
     z_img = nib.load(op.join(output_dir, '{}_gt_{}'.format(prefix1, prefix2), '{}_gt_{}_z_desc-group1MinusGroup2.nii.gz'.format(prefix1, prefix2)))
@@ -82,6 +82,51 @@ def run_subtraction(dset1, dset2, output_dir, prefix1, prefix2):
     z_img_group2_final = nib.Nifti1Image(z_img_group2_thresh_data, z_img_group2.affine)
     nib.save(z_img_group2_final, op.join(output_dir, '{}_gt_{}'.format(prefix1, prefix2), '{}-{}_z_thresh-05.nii.gz'.format(prefix2, prefix1)))
 
+def dataset2table(dset, output_dir, prefix):
+    dset.metadata.to_csv(op.join(output_dir, '{}.csv'.format(prefix)), sep=',', index=False)
+
+def get_peaks(img_file, output_dir):
+
+    # get cluster + peak information from image
+    stat_img = nib.load(img_file)
+    atlas=['aal']
+    voxel_thresh = np.min(stat_img.get_fdata()[np.nonzero(stat_img.get_fdata())])
+    direction = 'pos'
+    cluster_extent = 1
+    prob_thresh = 5
+    min_distance = 15
+    out_fn = op.join(output_dir, '{0}_clusterinfo.csv'.format(op.basename(img_file).split('.')[0]))
+
+    _, peaks_frame = atlasreader.get_statmap_info(
+        stat_img, atlas=atlas, voxel_thresh=voxel_thresh,
+        direction=direction, cluster_extent=cluster_extent,
+        prob_thresh=prob_thresh, min_distance=min_distance)
+
+    for i, row in peaks_frame.iterrows():
+        tmplabel = row['aal']
+        if i == 0:
+            if tmplabel.split('_')[-1] in ['L', 'R']:
+                hemis = [tmplabel.split('_')[-1]]
+                labels = [' '.join(tmplabel.split('_')[:-1])]
+            else:
+                hemis = ['']
+                labels = [' '.join(tmplabel.split('_'))]
+        else:
+            if tmplabel.split('_')[-1] in ['L', 'R']:
+                hemis.append(tmplabel.split('_')[-1])
+                labels.append(' '.join(tmplabel.split('_')[:-1]))
+            else:
+                hemis.append('')
+                labels.append(' '.join(tmplabel.split('_')))
+
+    peaks_frame['Hemisphere'] = hemis
+    peaks_frame['Label'] = labels
+    peaks_frame = peaks_frame.drop(columns=['aal'])
+    peaks_frame = peaks_frame.rename(columns={'cluster_id': 'Cluster', 'peak_x': 'x', 'peak_y': 'y', 'peak_z': 'z', 'peak_value': 'Value', 'volume_mm': 'Volume (mm^3)'})
+
+    # write output .csv files
+    peaks_frame.to_csv(out_fn,
+        index=False, float_format='%5g')
 
 
 #main part of script
@@ -102,6 +147,10 @@ grammatical_dset = dset_include.slice(grammatical_idx)
 #define output directory and run ale function defined above
 output_dir = op.join(project_directory, 'derivatives', 'grammatical')
 run_ale(grammatical_dset, output_dir, 'grammatical')
+#save the dataset
+grammatical_dset.save(op.join(output_dir, "grammatical.pkl"))
+dataset2table(grammatical_dset, output_dir, 'grammatical')
+get_peaks(op.join(output_dir, '{}_z_corr-FWE_thresh-05.nii.gz'.format('grammatical')), output_dir)
 
 #select the ungrammatical contrasts
 ungrammatical_idx = dset_include.annotations['id'][dset_include.annotations['Meta-Analysis Group'] == 'Ungrammatical']
@@ -110,6 +159,10 @@ ungrammatical_dset = dset_include.slice(ungrammatical_idx)
 #define output directory and run ale function defined above
 output_dir = op.join(project_directory, 'derivatives', 'ungrammatical')
 run_ale(ungrammatical_dset, output_dir, 'ungrammatical')
+#save the dataset
+ungrammatical_dset.save(op.join(output_dir, "ungrammatical.pkl"))
+dataset2table(ungrammatical_dset, output_dir, 'ungrammatical')
+get_peaks(op.join(output_dir, '{}_z_corr-FWE_thresh-05.nii.gz'.format('ungrammatical')), output_dir)
 
 #run subtraction analysis
 output_dir = op.join(project_directory, 'derivatives')

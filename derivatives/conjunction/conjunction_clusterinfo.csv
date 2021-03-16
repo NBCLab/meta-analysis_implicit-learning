@@ -1,0 +1,4 @@
+Cluster,x,y,z,Value,Volume (mm^3),Hemisphere,Label
+    1,  -44,   10,   18,4.73834, 1856,L,Frontal Inf Oper
+    1,  -44,   26,   22,3.7423, 1856,L,Frontal Inf Tri
+    2,  -34,   20,   -2,5.0241,  520,L,Insula

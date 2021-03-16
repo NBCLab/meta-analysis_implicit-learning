@@ -22,6 +22,7 @@ def get_worksheet_as_df(sheet_name):
     df = pd.DataFrame(data, columns=cols)
     df = df.replace('na', 'NaN')
     df = df.replace('ns', 'NaN')
+    df = df.dropna(axis=0, how='all')
     return df
 
 
@@ -81,7 +82,7 @@ for i in range(len(study_idx)):
 #Second, parase the papers and contrasts spreadsheet
 study_idx = np.where(contrasts_df['Paper ID'].notna())[0]
 study_dict = {}
-for i in range(len(study_idx)-1):
+for i in range(len(study_idx)):
     start_row = study_idx[i]
     if i == len(study_idx) - 1:
         stop_row = np.shape(contrasts_df)[0]

@@ -1,0 +1,10 @@
+Cluster,x,y,z,Value,Volume (mm^3),Hemisphere,Label
+    1,  -42,  -28,   10,38.4674,38008,L,Temporal Sup
+    1,  -34,   22,    0,12.5603,38008,L,Insula
+    1,  -46,   16,   22,10.7845,38008,L,Frontal Inf Oper
+    2,   52,  -22,    6,24.0362,25280,R,Temporal Sup
+    2,   50,    8,    0,10.3296,25280,R,Rolandic Oper
+    3,   -2,   10,   50,11.4505, 2440,L,Supp Motor Area
+    4,   36,   22,    0,11.5871, 1048,R,Insula
+    5,   50,    8,   28,9.94217,  232,R,Frontal Inf Oper
+    6,  -12,  -18,    4,9.64023,   48,L,Thalamus

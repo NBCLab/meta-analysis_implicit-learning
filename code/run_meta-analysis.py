@@ -6,6 +6,10 @@ import nibabel as nib
 import numpy as np
 import pandas as pd
 from atlasreader import atlasreader
+import neurosynth
+import sys
+sys.path.append('/home/miriedel/cALE')
+from roi import make_sphere
 
 
 def conjunction(img1_fn, img2_fn, output_dir):
@@ -23,22 +27,23 @@ def conjunction(img1_fn, img2_fn, output_dir):
 
 #define some functions
 def thresh_img(logp_img, z_img, p):
-    sig_inds = np.where(logp_img.get_fdata() > -np.log(p))
+    sig_inds = np.where(logp_img.get_fdata() > -np.log10(p))
     z_img_data = z_img.get_fdata()
     z_img_thresh_data = np.zeros(z_img.shape)
     z_img_thresh_data[sig_inds] = z_img_data[sig_inds]
     z_img = nib.Nifti1Image(z_img_thresh_data, z_img.affine)
     return z_img
 
-def run_ale(dset, output_dir, prefix):
+def run_ale(dset, output_dir, fwe_kind, fwe_thresh, prefix, **kwargs):
     #define the ALE algorithm
-    ale = nimare.meta.ALE()
+    fwhm = kwargs.get("kernel__fwhm")
+    ale = nimare.meta.ALE(kernel__fwhm=fwhm, n_cores=-1)
 
     #calculate ale statistics
     ale.fit(dset)
 
     #run FWE multiple comparisons correction
-    corr = nimare.correct.FWECorrector(method="montecarlo", n_iters=10000, voxel_thresh=0.001)
+    corr = nimare.correct.FWECorrector(method="montecarlo", n_iters=10000, voxel_thresh=0.001, n_cores=-1)
     cres = corr.transform(ale.results)
 
     #save output maps and dataset
@@ -46,10 +51,10 @@ def run_ale(dset, output_dir, prefix):
     cres.save_maps(output_dir=output_dir, prefix=prefix)
 
     #the FWE corrected map contains a -logp value for each cluster, so we need to manually theshold the map to account for that
-    z_img_logp = nib.load(op.join(output_dir, '{prefix}_logp_level-cluster_corr-FWE_method-montecarlo.nii.gz'.format(prefix=prefix)))
+    z_img_logp = nib.load(op.join(output_dir, '{prefix}_logp_level-{fwe_kind}_corr-FWE_method-montecarlo.nii.gz'.format(prefix=prefix, fwe_kind=fwe_kind)))
     z_img = nib.load(op.join(output_dir, '{prefix}_z.nii.gz'.format(prefix=prefix)))
-    z_img_thresh = thresh_img(z_img_logp, z_img, 0.05)
-    nib.save(z_img_thresh, op.join(output_dir, '{prefix}_z_corr-FWE_thresh-05.nii.gz'.format(prefix=prefix)))
+    z_img_thresh = thresh_img(z_img_logp, z_img, fwe_thresh)
+    nib.save(z_img_thresh, op.join(output_dir, '{prefix}_z_corr-FWE-{fwe_kind}_thresh-{thresh}.nii.gz'.format(prefix=prefix, fwe_kind=fwe_kind, thresh=fwe_thresh)))
 
 def run_subtraction(dset1, dset2, output_dir, prefix1, prefix2):
     #define the ALE algorithm
@@ -81,7 +86,7 @@ def run_subtraction(dset1, dset2, output_dir, prefix1, prefix2):
         z_img_group2_data = z_img_group2.get_fdata()
 
         #for first direction
-        sig_inds = np.where(z_img.get_fdata() > -np.log(0.05))
+        sig_inds = np.where(z_img.get_fdata() > -np.log10(0.05))
 
         zimg1_sub_zimg2 = z_img_group1_data - z_img_group2_data
 
@@ -92,7 +97,7 @@ def run_subtraction(dset1, dset2, output_dir, prefix1, prefix2):
         nib.save(z_img_group1_final, op.join(output_dir, '{}_gt_{}'.format(prefix1, prefix2), '{}-{}_z_thresh-05.nii.gz'.format(prefix1, prefix2)))
 
         #for second direction
-        sig_inds = np.where(z_img.get_fdata() < np.log(0.05))
+        sig_inds = np.where(z_img.get_fdata() < np.log10(0.05))
 
         zimg2_sub_zimg1 = z_img_group2_data - z_img_group1_data
 
@@ -115,7 +120,7 @@ def get_peaks(img_file, output_dir):
     cluster_extent = 1
     prob_thresh = 5
     min_distance = 15
-    out_fn = op.join(output_dir, '{0}_clusterinfo.csv'.format(op.basename(img_file).split('.')[0]))
+    out_fn = op.join(output_dir, '{0}_clusterinfo.csv'.format(op.basename(img_file).strip('.nii.gz')))
 
     _, peaks_frame = atlasreader.get_statmap_info(
         stat_img, atlas=atlas, voxel_thresh=voxel_thresh,
@@ -148,9 +153,11 @@ def get_peaks(img_file, output_dir):
     peaks_frame.to_csv(out_fn,
         index=False, float_format='%5g')
 
+    return peaks_frame
+
 
 #main part of script
-project_directory = '/Users/miriedel/Desktop/GitHub/meta-analysis_implicit-learning'
+project_directory = '/home/data/nbc/misc-projects/meta-analyses/meta-analysis_implicit-learning'
 
 # load the nimare dataset
 with open(op.join(project_directory, 'code', 'nimare_dataset.pkl'), 'rb') as fo:
@@ -166,12 +173,12 @@ grammatical_dset = dset_include.slice(grammatical_idx)
 
 #define output directory and run ale function defined above
 output_dir = op.join(project_directory, 'derivatives', 'grammatical')
-#run_ale(grammatical_dset, output_dir, 'grammatical')
+#run_ale(grammatical_dset, output_dir, 'cluster', 0.05, 'grammatical')
 #save the dataset
 grammatical_dset.save(op.join(output_dir, "grammatical.pkl"))
 dataset2table(grammatical_dset, output_dir, 'grammatical')
-grammatical_fn = op.join(output_dir, '{}_z_corr-FWE_thresh-05.nii.gz'.format('grammatical'))
-get_peaks(grammatical_fn, output_dir)
+grammatical_fn = op.join(output_dir, '{}_z_corr-FWE-{}_thresh-05.nii.gz'.format('grammatical', 'cluster'))
+grammatical_peaks = get_peaks(grammatical_fn, output_dir)
 
 #select the ungrammatical contrasts
 ungrammatical_idx = dset_include.annotations['id'][dset_include.annotations['Meta-Analysis Group'] == 'Ungrammatical']
@@ -179,18 +186,77 @@ ungrammatical_dset = dset_include.slice(ungrammatical_idx)
 
 #define output directory and run ale function defined above
 output_dir = op.join(project_directory, 'derivatives', 'ungrammatical')
-#un_ale(ungrammatical_dset, output_dir, 'ungrammatical')
+#run_ale(ungrammatical_dset, output_dir, 'cluster', 0.05, 'ungrammatical')
 #save the dataset
 ungrammatical_dset.save(op.join(output_dir, "ungrammatical.pkl"))
 dataset2table(ungrammatical_dset, output_dir, 'ungrammatical')
-ungrammatical_fn = op.join(output_dir, '{}_z_corr-FWE_thresh-05.nii.gz'.format('ungrammatical'))
+ungrammatical_fn = op.join(output_dir, '{}_z_corr-FWE-{}_thresh-05.nii.gz'.format('ungrammatical', 'cluster'))
 get_peaks(ungrammatical_fn, output_dir)
 
+#run conjunction analysis
 output_dir = op.join(project_directory, 'derivatives', 'conjunction')
 conjunction_fn = op.join(output_dir, 'conjunction.nii.gz')
 conjunction(grammatical_fn, ungrammatical_fn, output_dir)
 get_peaks(conjunction_fn, output_dir)
-exit()
+
+#run pooled analysis
+pooled_idx = dset_include.annotations['id'][(dset_include.annotations['Meta-Analysis Group'] == 'Grammatical') | (dset_include.annotations['Meta-Analysis Group'] == 'Ungrammatical')]
+pooled_dset = dset_include.slice(pooled_idx)
+output_dir = op.join(project_directory, 'derivatives', 'pooled')
+#run_ale(pooled_dset, output_dir, 'cluster', 0.05, 'pooled')
+#save the dataset
+pooled_dset.save(op.join(output_dir, "pooled.pkl"))
+dataset2table(pooled_dset, output_dir, 'pooled')
+pooled_fn = op.join(output_dir, '{}_z_corr-FWE-{}_thresh-05.nii.gz'.format('pooled', 'cluster'))
+get_peaks(pooled_fn, output_dir)
+
 #run subtraction analysis
 output_dir = op.join(project_directory, 'derivatives')
 run_subtraction(grammatical_dset, ungrammatical_dset, output_dir, 'grammatical', 'ungrammatical')
+
+#run macms on peak coordinates from grammatical meta-analysis
+# download neurosynth dataset if necessary
+ns_data_dir = op.join(project_directory, 'code', 'neurosynth')
+ns_dataset_file = op.join(ns_data_dir, 'neurosynth_dataset.pkl.gz')
+
+if not op.isfile(ns_dataset_file):
+    if not op.isdir(ns_data_dir):
+        os.mkdir(ns_data_dir)
+    neurosynth.base.dataset.download(ns_data_dir, unpack=True)
+    ###############################################################################
+    # Convert Neurosynth database to NiMARE dataset file
+    # --------------------------------------------------
+    ns_dset = nimare.io.convert_neurosynth_to_dataset(
+        op.join(ns_data_dir, 'database.txt'),
+        op.join(ns_data_dir, 'features.txt'))
+    ns_dset.save(ns_dataset_file)
+
+ns_dset = nimare.dataset.Dataset.load(ns_dataset_file)
+for i,peak in grammatical_peaks.iterrows():
+    peak_prefix = '{}_{}_{}'.format(peak['x'], peak['y'], peak['z'])
+
+    #make output directory for spherical rois
+    roi_output_dir = op.join(project_directory, 'derivatives', 'rois')
+    os.makedirs(roi_output_dir, exist_ok=True)
+    make_sphere(peak['x'], peak['y'], peak['z'], roi_output_dir)
+
+    #macm output directory
+    macm_output_dir = op.join(project_directory, 'derivatives', 'macm', peak_prefix)
+    if not op.isfile(op.join(macm_output_dir, '{prefix}_z_corr-FWE-{fwe_kind}_thresh-0.001.nii.gz'.format(prefix=peak_prefix, fwe_kind='voxel'))):
+        tmp_ids = ns_dset.get_studies_by_mask(op.join(roi_output_dir, '{}.nii.gz'.format(peak_prefix)))
+        tmp_dset = ns_dset.slice(tmp_ids)
+        run_ale(tmp_dset, macm_output_dir, 'voxel', 0.001, peak_prefix, kernel__fwhm=15)
+
+        #save the dataset
+        tmp_dset.save(op.join(macm_output_dir, "{}.pkl".format(peak_prefix)))
+        dataset2table(tmp_dset, macm_output_dir, peak_prefix)
+        peakimg_fn = op.join(macm_output_dir, '{}_z_corr-FWE-{}_thresh-0.001.nii.gz'.format(peak_prefix, 'voxel'))
+        get_peaks(peakimg_fn, macm_output_dir)
+
+    rsfc_output_dir = op.join(project_directory, 'derivatives', 'rsfc')
+
+    conjunction_connectivity_dir = op.join(project_directory, 'derivatives', 'connectivity', peak_prefix)
+
+    conjunction(op.join(macm_output_dir, '{}_z_corr-FWE-{}_thresh-0.001.nii.gz'.format(peak_prefix, 'voxel')),
+                op.join(rsfc_output_dir, '{}_tstat1_thr001.nii.gz'.format(peak_prefix)),
+                conjunction_connectivity_dir)

@@ -1,0 +1,20 @@
+Cluster,x,y,z,Value,Volume (mm^3),Hemisphere,Label
+    1,  -44,    6,   30,38.4674,105336,L,Precentral
+    1,  -32,   22,   -2,38.4674,105336,L,Insula
+    1,   34,   22,   -2,38.4674,105336,R,Insula
+    1,   48,   10,   28,30.0282,105336,R,Frontal Inf Oper
+    1,   46,   32,   24,24.3516,105336,R,Frontal Inf Tri
+    1,  -10,  -16,    6,23.7124,105336,L,Thalamus
+    1,  -14,    6,    2,23.2652,105336,L,Pallidum
+    1,   14,    8,    2,22.3949,105336,,no label
+    1,  -28,   -2,   54,21.9689,105336,L,Frontal Mid 2
+    1,   10,  -12,    4,21.8009,105336,R,Thalamus
+    2,    0,   16,   46,38.4674,24992,L,Supp Motor Area
+    3,  -30,  -58,   46,31.4832,17272,L,Parietal Inf
+    4,   34,  -56,   46,24.5697,11904,R,Angular
+    4,   16,  -68,   50,13.0041,11904,R,Parietal Sup
+    5,  -44,  -62,  -12,19.607, 4376,L,Occipital Inf
+    6,   32,    0,   54,20.8764, 2920,R,Frontal Mid 2
+    7,  -34,   48,   14,12.4695,    8,L,Frontal Mid 2
+    8,  -20,   -4,  -14,12.3627,    8,L,Amygdala
+    9,  -20,   -6,  -16,12.3849,    8,L,Amygdala

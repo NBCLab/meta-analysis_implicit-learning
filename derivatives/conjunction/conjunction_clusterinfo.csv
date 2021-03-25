@@ -3,6 +3,9 @@ Cluster,x,y,z,Value,Volume (mm^3),Hemisphere,Label
     1,  -44,   26,   22,3.7423, 1856,L,Frontal Inf Tri
     2,  -34,   20,   -2,5.0241,  520,L,Insula
 <<<<<<< HEAD
+<<<<<<< HEAD
     3,   34,   24,   -2,4.35365,  376,R,Insula
+=======
+>>>>>>> 0e2bc83abb89b533e2e88392aaacde0526dffe31
 =======
 >>>>>>> 0e2bc83abb89b533e2e88392aaacde0526dffe31

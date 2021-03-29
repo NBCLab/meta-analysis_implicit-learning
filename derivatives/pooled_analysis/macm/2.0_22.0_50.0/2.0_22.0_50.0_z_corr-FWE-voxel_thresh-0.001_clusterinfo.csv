@@ -1,0 +1,16 @@
+Cluster,x,y,z,Value,Volume (mm^3),Hemisphere,Label
+    1,  -32,   22,   -2,34.7869,36496,L,Insula
+    1,  -44,    8,   30,28.7439,36496,L,Precentral
+    1,  -30,    0,   56,17.4353,36496,L,Frontal Mid 2
+    2,   36,   22,   -2,36.4878,32296,R,Insula
+    2,   50,   12,   28,23.9696,32296,R,Frontal Inf Oper
+    2,   46,   30,   26,19.1494,32296,R,Frontal Inf Tri
+    2,   32,    2,   54,18.222,32296,R,Frontal Mid 2
+    3,    2,   20,   48,38.4494,27224,L,Supp Motor Area
+    4,  -32,  -56,   46,23.7364,14464,L,Parietal Inf
+    5,   38,  -52,   46,21.5034, 9424,R,Parietal Inf
+    6,  -10,  -14,    6,16.1864, 3208,L,Thalamus
+    6,  -14,    6,    4,13.4225, 3208,,no label
+    7,   14,    8,    2,14.4667, 2600,,no label
+    7,   10,  -12,    6,13.2158, 2600,R,Thalamus
+    8,  -44,  -60,  -14,12.2682,  408,L,Occipital Inf

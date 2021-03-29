@@ -1,0 +1,6 @@
+Cluster,x,y,z,Value,Volume (mm^3),Hemisphere,Label
+    1,   50,   26,    4,38.4674,27352,R,Frontal Inf Tri
+    2,  -36,   22,    0,19.2146,22944,L,Insula
+    2,  -48,   18,   16, 15.3,22944,L,Frontal Inf Tri
+    3,   -2,   16,   46,14.395, 8720,L,Supp Motor Area
+    4,  -56,  -36,    2,10.7567,  896,L,Temporal Mid

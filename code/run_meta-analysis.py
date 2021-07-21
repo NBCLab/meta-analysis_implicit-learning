@@ -25,32 +25,6 @@ def conjunction(img1_fn, img2_fn, output_dir):
     os.makedirs(output_dir, exist_ok=True)
     nib.save(nib.Nifti1Image(conjunction_img, img1.affine), op.join(output_dir, 'conjunction.nii.gz'))
 
-def conjunction(img1_fn, img2_fn, output_dir):
-    img1 = nib.load(img1_fn)
-    img2 = nib.load(img2_fn)
-    inds1 = np.ravel_multi_index(np.nonzero(img1.get_fdata()), img1.shape)
-    inds2 = np.ravel_multi_index(np.nonzero(img2.get_fdata()), img2.shape)
-    inds12 = np.unravel_index(np.intersect1d(inds1, inds2), img1.shape)
-    minstat = np.min(np.vstack((img1.get_fdata()[inds12], img2.get_fdata()[inds12])), axis=0)
-
-    conjunction_img = np.zeros(img1.shape)
-    conjunction_img[inds12] = minstat
-    os.makedirs(output_dir, exist_ok=True)
-    nib.save(nib.Nifti1Image(conjunction_img, img1.affine), op.join(output_dir, 'conjunction.nii.gz'))
-
-def conjunction(img1_fn, img2_fn, output_dir):
-    img1 = nib.load(img1_fn)
-    img2 = nib.load(img2_fn)
-    inds1 = np.ravel_multi_index(np.nonzero(img1.get_fdata()), img1.shape)
-    inds2 = np.ravel_multi_index(np.nonzero(img2.get_fdata()), img2.shape)
-    inds12 = np.unravel_index(np.intersect1d(inds1, inds2), img1.shape)
-    minstat = np.min(np.vstack((img1.get_fdata()[inds12], img2.get_fdata()[inds12])), axis=0)
-
-    conjunction_img = np.zeros(img1.shape)
-    conjunction_img[inds12] = minstat
-    os.makedirs(output_dir, exist_ok=True)
-    nib.save(nib.Nifti1Image(conjunction_img, img1.affine), op.join(output_dir, 'conjunction.nii.gz'))
-
 #define some functions
 def thresh_img(logp_img, z_img, p):
     sig_inds = np.where(logp_img.get_fdata() > -np.log10(p))
@@ -112,15 +86,7 @@ def run_subtraction(dset1, dset2, output_dir, prefix1, prefix2):
         z_img_group2_data = z_img_group2.get_fdata()
 
         #for first direction
-<<<<<<< HEAD
-<<<<<<< HEAD
         sig_inds = np.where(z_img.get_fdata() > -np.log10(0.05))
-=======
-        sig_inds = np.where(z_img.get_fdata() > -np.log(0.05))
->>>>>>> 0e2bc83abb89b533e2e88392aaacde0526dffe31
-=======
-        sig_inds = np.where(z_img.get_fdata() > -np.log(0.05))
->>>>>>> 0e2bc83abb89b533e2e88392aaacde0526dffe31
 
         zimg1_sub_zimg2 = z_img_group1_data - z_img_group2_data
 
@@ -131,15 +97,7 @@ def run_subtraction(dset1, dset2, output_dir, prefix1, prefix2):
         nib.save(z_img_group1_final, op.join(output_dir, '{}_gt_{}'.format(prefix1, prefix2), '{}-{}_z_thresh-05.nii.gz'.format(prefix1, prefix2)))
 
         #for second direction
-<<<<<<< HEAD
-<<<<<<< HEAD
         sig_inds = np.where(z_img.get_fdata() < np.log10(0.05))
-=======
-        sig_inds = np.where(z_img.get_fdata() < np.log(0.05))
->>>>>>> 0e2bc83abb89b533e2e88392aaacde0526dffe31
-=======
-        sig_inds = np.where(z_img.get_fdata() < np.log(0.05))
->>>>>>> 0e2bc83abb89b533e2e88392aaacde0526dffe31
 
         zimg2_sub_zimg1 = z_img_group2_data - z_img_group1_data
 
@@ -215,30 +173,12 @@ grammatical_dset = dset_include.slice(grammatical_idx)
 
 #define output directory and run ale function defined above
 output_dir = op.join(project_directory, 'derivatives', 'grammatical')
-<<<<<<< HEAD
-<<<<<<< HEAD
 #run_ale(grammatical_dset, output_dir, 'cluster', 0.05, 'grammatical')
 #save the dataset
 grammatical_dset.save(op.join(output_dir, "grammatical.pkl"))
 dataset2table(grammatical_dset, output_dir, 'grammatical')
 grammatical_fn = op.join(output_dir, '{}_z_corr-FWE-{}_thresh-05.nii.gz'.format('grammatical', 'cluster'))
 grammatical_peaks = get_peaks(grammatical_fn, output_dir)
-=======
-#run_ale(grammatical_dset, output_dir, 'grammatical')
-#save the dataset
-grammatical_dset.save(op.join(output_dir, "grammatical.pkl"))
-dataset2table(grammatical_dset, output_dir, 'grammatical')
-grammatical_fn = op.join(output_dir, '{}_z_corr-FWE_thresh-05.nii.gz'.format('grammatical'))
-get_peaks(grammatical_fn, output_dir)
->>>>>>> 0e2bc83abb89b533e2e88392aaacde0526dffe31
-=======
-#run_ale(grammatical_dset, output_dir, 'grammatical')
-#save the dataset
-grammatical_dset.save(op.join(output_dir, "grammatical.pkl"))
-dataset2table(grammatical_dset, output_dir, 'grammatical')
-grammatical_fn = op.join(output_dir, '{}_z_corr-FWE_thresh-05.nii.gz'.format('grammatical'))
-get_peaks(grammatical_fn, output_dir)
->>>>>>> 0e2bc83abb89b533e2e88392aaacde0526dffe31
 
 #select the ungrammatical contrasts
 ungrammatical_idx = dset_include.annotations['id'][dset_include.annotations['Meta-Analysis Group'] == 'Ungrammatical']
@@ -246,8 +186,6 @@ ungrammatical_dset = dset_include.slice(ungrammatical_idx)
 
 #define output directory and run ale function defined above
 output_dir = op.join(project_directory, 'derivatives', 'ungrammatical')
-<<<<<<< HEAD
-<<<<<<< HEAD
 #run_ale(ungrammatical_dset, output_dir, 'cluster', 0.05, 'ungrammatical')
 #save the dataset
 ungrammatical_dset.save(op.join(output_dir, "ungrammatical.pkl"))
@@ -256,30 +194,10 @@ ungrammatical_fn = op.join(output_dir, '{}_z_corr-FWE-{}_thresh-05.nii.gz'.forma
 get_peaks(ungrammatical_fn, output_dir)
 
 #run conjunction analysis
-=======
-#un_ale(ungrammatical_dset, output_dir, 'ungrammatical')
-#save the dataset
-ungrammatical_dset.save(op.join(output_dir, "ungrammatical.pkl"))
-dataset2table(ungrammatical_dset, output_dir, 'ungrammatical')
-ungrammatical_fn = op.join(output_dir, '{}_z_corr-FWE_thresh-05.nii.gz'.format('ungrammatical'))
-get_peaks(ungrammatical_fn, output_dir)
-
->>>>>>> 0e2bc83abb89b533e2e88392aaacde0526dffe31
-=======
-#un_ale(ungrammatical_dset, output_dir, 'ungrammatical')
-#save the dataset
-ungrammatical_dset.save(op.join(output_dir, "ungrammatical.pkl"))
-dataset2table(ungrammatical_dset, output_dir, 'ungrammatical')
-ungrammatical_fn = op.join(output_dir, '{}_z_corr-FWE_thresh-05.nii.gz'.format('ungrammatical'))
-get_peaks(ungrammatical_fn, output_dir)
-
->>>>>>> 0e2bc83abb89b533e2e88392aaacde0526dffe31
 output_dir = op.join(project_directory, 'derivatives', 'conjunction')
 conjunction_fn = op.join(output_dir, 'conjunction.nii.gz')
 conjunction(grammatical_fn, ungrammatical_fn, output_dir)
 get_peaks(conjunction_fn, output_dir)
-<<<<<<< HEAD
-<<<<<<< HEAD
 
 #run pooled analysis
 pooled_idx = dset_include.annotations['id'][(dset_include.annotations['Meta-Analysis Group'] == 'Grammatical') | (dset_include.annotations['Meta-Analysis Group'] == 'Ungrammatical')]
@@ -290,17 +208,11 @@ output_dir = op.join(project_directory, 'derivatives', 'pooled')
 pooled_dset.save(op.join(output_dir, "pooled.pkl"))
 dataset2table(pooled_dset, output_dir, 'pooled')
 pooled_fn = op.join(output_dir, '{}_z_corr-FWE-{}_thresh-05.nii.gz'.format('pooled', 'cluster'))
-get_peaks(pooled_fn, output_dir)
+pooled_peaks = get_peaks(pooled_fn, output_dir)
 
-=======
-exit()
->>>>>>> 0e2bc83abb89b533e2e88392aaacde0526dffe31
-=======
-exit()
->>>>>>> 0e2bc83abb89b533e2e88392aaacde0526dffe31
 #run subtraction analysis
 output_dir = op.join(project_directory, 'derivatives')
-run_subtraction(grammatical_dset, ungrammatical_dset, output_dir, 'grammatical', 'ungrammatical')
+#run_subtraction(grammatical_dset, ungrammatical_dset, output_dir, 'grammatical', 'ungrammatical')
 
 #run macms on peak coordinates from grammatical meta-analysis
 # download neurosynth dataset if necessary
@@ -320,7 +232,7 @@ if not op.isfile(ns_dataset_file):
     ns_dset.save(ns_dataset_file)
 
 ns_dset = nimare.dataset.Dataset.load(ns_dataset_file)
-for i,peak in grammatical_peaks.iterrows():
+for i,peak in pooled_peaks.iterrows():
     peak_prefix = '{}_{}_{}'.format(peak['x'], peak['y'], peak['z'])
 
     #make output directory for spherical rois
